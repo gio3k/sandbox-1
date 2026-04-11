@@ -1,7 +1,8 @@
 using Sandbox.Citizen;
 
-public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
+public class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 {
+	public virtual bool EnablePlayerLoadout => true;
 	[Property] public int MaxSlots { get; set; } = 6;
 
 	[RequireComponent] public Player Player { get; set; }
@@ -56,7 +57,7 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 		return -1;
 	}
 
-	public void GiveDefaultWeapons()
+	public virtual void GiveDefaultWeapons()
 	{
 		Pickup( "weapons/physgun/physgun.prefab", false );
 		Pickup( "weapons/toolgun/toolgun.prefab", false );
@@ -66,7 +67,7 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 	/// <summary>
 	/// Activates the named tool mode, giving and equipping the toolgun first if the player doesn't have one.
 	/// </summary>
-	public void SetToolMode( string toolModeName )
+	public virtual void SetToolMode( string toolModeName )
 	{
 		if ( !Networking.IsHost )
 		{
@@ -681,6 +682,7 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 	/// </summary>
 	public void SaveLoadout()
 	{
+		if ( !EnablePlayerLoadout ) return;
 		if ( _isRestoringLoadout ) return; var json = SerializeLoadout();
 		if ( string.IsNullOrEmpty( json ) ) return;
 
@@ -697,12 +699,14 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 	[Rpc.Owner]
 	private void PushLoadoutToClient( string loadoutJson )
 	{
+		if ( !EnablePlayerLoadout ) return;
 		LocalData.Set( "hotbar", loadoutJson );
 	}
 
 	[Rpc.Owner]
 	private void RequestClientLoadout()
 	{
+		if ( !EnablePlayerLoadout ) return;
 		var json = LocalData.Get<string>( "hotbar" );
 		if ( !string.IsNullOrEmpty( json ) )
 			RestoreLoadoutFromClient( json );
@@ -725,6 +729,8 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 	[Rpc.Host]
 	private async void RestoreLoadoutFromClient( string loadoutJson )
 	{
+		if ( !EnablePlayerLoadout ) return;
+
 		foreach ( var weapon in Weapons.ToList() )
 			weapon.DestroyGameObject();
 
@@ -742,6 +748,8 @@ public sealed class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 
 	private void GiveLoadoutWeapons( string json )
 	{
+		if ( !EnablePlayerLoadout ) return;
+
 		var entries = Json.Deserialize<List<LoadoutEntry>>( json );
 		if ( entries is null ) return;
 
