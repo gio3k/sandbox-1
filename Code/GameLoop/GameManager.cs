@@ -1,9 +1,11 @@
+
 using Sandbox.UI;
 
-public sealed partial class GameManager : GameObjectSystem<GameManager>, Component.INetworkListener, ISceneStartup, IScenePhysicsEvents, ICleanupEvents, ISaveEvents
+public partial class GameManager : GameObjectSystem<GameManager>, Component.INetworkListener, ISceneStartup, IScenePhysicsEvents, ICleanupEvents, ISaveEvents
 {
 	public GameManager( Scene scene ) : base( scene )
 	{
+		if (LibSandbox.EnableDefaultGameManager) this.Dispose();
 	}
 
 	void ISceneStartup.OnHostInitialize()
@@ -76,7 +78,9 @@ public sealed partial class GameManager : GameObjectSystem<GameManager>, Compone
 		var startLocation = FindSpawnLocation().WithScale( 1 );
 
 		// Spawn this object and make the client the owner
-		var playerGo = GameObject.Clone( "/prefabs/engine/player.prefab", new CloneConfig { Name = playerData.DisplayName, StartEnabled = false, Transform = startLocation } );
+		var playerGo = GameObject.Clone( "/prefabs/game/player.prefab", new CloneConfig { Name = playerData.DisplayName, StartEnabled = false, Transform = startLocation } );
+		if (playerGo is null) Log.Warning( "No /prefabs/game/player.prefab" );
+		playerGo ??= GameObject.Clone( "/prefabs/engine/player.prefab", new CloneConfig { Name = playerData.DisplayName, StartEnabled = false, Transform = startLocation } );
 
 		var player = playerGo.Components.Get<Player>( true );
 		player.PlayerData = playerData;
