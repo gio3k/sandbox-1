@@ -5,11 +5,13 @@ public partial class GameManager : GameObjectSystem<GameManager>, Component.INet
 {
 	public GameManager( Scene scene ) : base( scene )
 	{
-		if (LibSandbox.EnableDefaultGameManager) this.Dispose();
+		if (!LibSandbox.EnableDefaultGameManager) this.Dispose();
 	}
 
 	void ISceneStartup.OnHostInitialize()
 	{
+		if ( !LibSandbox.EnableDefaultGameManager ) return;
+
 		if ( !Networking.IsActive )
 		{
 			Networking.CreateLobby( new Sandbox.Network.LobbyConfig() { Privacy = Sandbox.Network.LobbyPrivacy.Public, MaxPlayers = 32, Name = "Sandbox", DestroyWhenHostLeaves = true } );
@@ -18,6 +20,7 @@ public partial class GameManager : GameObjectSystem<GameManager>, Component.INet
 
 	void Component.INetworkListener.OnActive( Connection channel )
 	{
+		if ( !LibSandbox.EnableDefaultGameManager ) return;
 		channel.CanSpawnObjects = false;
 
 		var playerData = CreatePlayerInfo( channel );
@@ -33,6 +36,8 @@ public partial class GameManager : GameObjectSystem<GameManager>, Component.INet
 	/// </summary>
 	void Component.INetworkListener.OnDisconnected( Connection channel )
 	{
+		if ( !LibSandbox.EnableDefaultGameManager ) return;
+
 		var pd = PlayerData.For( channel );
 		if ( pd is not null )
 		{
