@@ -1,7 +1,7 @@
 /// <summary>
 /// Holds persistent player information like deaths, kills
 /// </summary>
-public sealed partial class PlayerData : Component, ISaveEvents
+public partial class PlayerData : Component, ISaveEvents
 {
 	/// <summary>
 	/// Unique Id per each player and bot, equal to owning Player connection Id if it's a real player.
