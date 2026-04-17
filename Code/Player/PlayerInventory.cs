@@ -252,6 +252,8 @@ public class PlayerInventory : Component, IPlayerEvent, ISaveEvents
 		else
 			item.Network.DropOwnership();
 
+		item.OnAdded( Player );
+
 		IPlayerEvent.PostToGameObject( GameObject, e => e.OnPickup( item ) );
 		OnClientPickup( item );
 	}
